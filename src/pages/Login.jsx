@@ -12,30 +12,10 @@ import {
 } from '@mui/material';
 import { FaGoogle, FaGithub } from 'react-icons/fa';
 import useAuthStore from '../store/authStore';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
-async function apiLogin(email, password) {
-  const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-
-  if (!res.ok) {
-    const data = await res.json();
-    let message = 'Error en login';
-    if (data?.errors?.length) message = data.errors[0].msg;
-    else if (data?.error) message = data.error;
-    throw new Error(message);
-  }
-
-  const data = await res.json();
-  return data.token;
-}
+import api from '../utils/Api'; // Usar la instancia de axios configurada
 
 export default function Login() {
-  const setToken = useAuthStore(state => state.setToken);
+  const { setToken, setRefreshToken } = useAuthStore();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -48,19 +28,40 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setLoading(true);
+    
     try {
-      const token = await apiLogin(email, password);
-      setToken(token, rememberMe);
-      navigate('/dashboard');
+      const response = await api.post('/api/auth/login', {
+        email,
+        password
+      });
+
+      // Guardar ambos tokens
+      setToken(response.data.accessToken, rememberMe);
+      setRefreshToken(response.data.refreshToken);
+      
+      // Redirigir al dashboard
+      navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.message);
+      console.error('Error en login:', err);
+      
+      // Manejo mejorado de errores
+      const errorMessage = err.response?.data?.error || 
+                         err.response?.data?.message || 
+                         'Error al iniciar sesión. Intente nuevamente.';
+      
+      setError(errorMessage);
+      
+      // Limpiar tokens si hay error 401
+      if (err.response?.status === 401) {
+        useAuthStore.getState().clearToken();
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleOAuthRedirect = (provider) => {
-    window.open(`${API_BASE_URL}/api/oauth/${provider}`, '_self');
+    window.location.href = `${import.meta.env.VITE_API_URL}/api/oauth/${provider}`;
   };
 
   return (

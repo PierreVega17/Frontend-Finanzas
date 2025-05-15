@@ -1,86 +1,94 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-const isTokenValid = (token) => {
-  if (!token) return false;
-  try {
-    // Decodificar el token (parte del payload)
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    // Verificar si el token ha expirado
-    return payload.exp * 1000 > Date.now();
-  } catch (error) {
-    console.error('Error al validar token:', error);
-    return false;
-  }
-};
-
-const getStoredToken = () => {
-  // Primero intentar obtener de sessionStorage
-  let token = sessionStorage.getItem('sessionToken');
-  
-  // Si no hay token en sessionStorage, intentar localStorage
-  if (!token) {
-    token = localStorage.getItem('rememberedToken');
-  }
-  
-  return token && isTokenValid(token) ? token : null;
-};
-
-const initialState = {
-  token: getStoredToken(),
-  isInitialized: false
-};
+import jwtDecode from 'jwt-decode';
 
 const useAuthStore = create(
   persist(
-    (set) => ({
-      ...initialState,
+    (set, get) => ({
+      token: null,
+      refreshToken: null,
+      isAuthenticated: false,
+      
+      // Decodificar token para obtener información del usuario
+      getUserData: () => {
+        const token = get().token;
+        if (!token) return null;
+        try {
+          return jwtDecode(token);
+        } catch (error) {
+          console.error('Error decodificando token:', error);
+          return null;
+        }
+      },
+      
+      // Verificar si el token es válido
+      isTokenValid: () => {
+        const token = get().token;
+        if (!token) return false;
+        try {
+          const { exp } = jwtDecode(token);
+          return exp * 1000 > Date.now();
+        } catch (error) {
+          console.error('Error validando token:', error);
+          return false;
+        }
+      },
       
       setToken: (token, rememberMe = false) => {
         if (!token) {
-          console.error('Intento de establecer un token nulo');
+          console.error('Token no proporcionado');
           return;
         }
-
-        try {
-          if (rememberMe) {
-            localStorage.setItem('rememberedToken', token);
-            sessionStorage.removeItem('sessionToken');
-          } else {
-            sessionStorage.setItem('sessionToken', token);
-            localStorage.removeItem('rememberedToken');
-          }
-          
-          set({ 
-            token, 
-            isInitialized: true 
-          });
-        } catch (error) {
-          console.error('Error al establecer el token:', error);
-          set({ token: null, isInitialized: true });
+        
+        const storage = rememberMe ? localStorage : sessionStorage;
+        storage.setItem('token', token);
+        
+        set({ 
+          token,
+          isAuthenticated: true 
+        });
+      },
+      
+      setRefreshToken: (refreshToken) => {
+        if (!refreshToken) {
+          console.error('Refresh token no proporcionado');
+          return;
         }
+        
+        localStorage.setItem('refreshToken', refreshToken);
+        set({ refreshToken });
       },
       
       clearToken: () => {
-        localStorage.removeItem('rememberedToken');
-        sessionStorage.removeItem('sessionToken');
-        set({ token: null, isInitialized: true });
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        sessionStorage.removeItem('token');
+        set({ 
+          token: null,
+          refreshToken: null,
+          isAuthenticated: false 
+        });
       },
       
-      initializeAuth: () => {
-        const token = getStoredToken();
-        set({ token, isInitialized: true });
+      initialize: () => {
+        const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+        const refreshToken = localStorage.getItem('refreshToken');
+        
+        if (token) {
+          set({ 
+            token,
+            refreshToken,
+            isAuthenticated: true 
+          });
+        }
       }
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ token: state.token }),
-      onRehydrateStorage: () => (state) => {
-        // Validar el token después de rehidratar el estado
-        if (state && state.token && !isTokenValid(state.token)) {
-          state.clearToken();
-        }
-      }
+      partialize: (state) => ({
+        token: state.token,
+        refreshToken: state.refreshToken
+      })
     }
   )
 );

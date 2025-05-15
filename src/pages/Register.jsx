@@ -1,6 +1,15 @@
 import { useState } from 'react';
-import { TextField, Button, Typography, Box } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { 
+  TextField, 
+  Button, 
+  Typography, 
+  Box,
+  Alert,
+  CircularProgress 
+} from '@mui/material';
 import useAuthStore from '../store/authStore';
+import api from '../utils/Api';
 
 export default function Register() {
   const [username, setUsername] = useState('');
@@ -8,22 +17,51 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const { register } = useAuthStore();
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { setToken, setRefreshToken } = useAuthStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
+    
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden');
       return;
     }
 
+    setLoading(true);
+    
     try {
-      await register(username, email, password);
-    } catch (error) {
-      console.error('Error al registrar:', error.response?.data);
-      setError('Error al registrar. Por favor, inténtalo de nuevo.');
+      const response = await api.post('/api/auth/register', {
+        name: username,
+        email,
+        password
+      });
+
+      // Guardar tokens después del registro
+      setToken(response.data.accessToken, true); // Siempre rememberMe en registro
+      setRefreshToken(response.data.refreshToken);
+      
+      // Redirigir al dashboard
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      console.error('Error en registro:', err);
+      
+      // Manejo detallado de errores
+      let errorMessage = 'Error al registrar. Intente nuevamente.';
+      
+      if (err.response?.data?.errors?.length > 0) {
+        errorMessage = err.response.data.errors[0].msg;
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
