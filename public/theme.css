@@ -1,0 +1,105 @@
+:root {
+    /* Colores base - Light Theme */
+    --bg-color: #f8f9fa;
+    --text-color: #212529;
+    --paper-bg: #ffffff;
+    
+    /* Colores principales */
+    --primary: #2c3e50;
+    --secondary: #3498db;
+    --error: #e74c3c;
+    --success: #27ae60;
+    --warning: #f39c12;
+    
+    /* Componentes */
+    --btn-bg: var(--primary);
+    --btn-color: #ffffff;
+    --btn-hover-bg: #2980b9;
+    --navbar-bg: var(--primary);
+    --navbar-color: #ffffff;
+    
+    /* Inputs */
+    --input-label: #495057;
+    --input-text: var(--text-color);
+    --input-border: #ced4da;
+    --input-hover-border: #adb5bd;
+    --input-focus-border: var(--secondary);
+    --input-icon: #6c757d;
+    
+    /* Menús */
+    --menu-item-bg: var(--paper-bg);
+    --menu-item-text: var(--text-color);
+    --menu-item-hover: #f1f1f1;
+    --menu-item-selected: #e3f2fd;
+    
+    /* Gráficos */
+    --chart-primary: var(--secondary);
+    --chart-secondary: var(--error);
+    
+    /* Textos */
+    --secondary-text: #6c757d;
+    --balance-text: var(--success);
+    
+    /* Tooltips */
+    --tooltip-bg: var(--primary);
+    --tooltip-border: var(--secondary);
+    --tooltip-text: #ffffff;
+    
+    /* Resúmenes */
+    --summary-bg: #f1f8fe;
+    --summary-border: rgba(52, 152, 219, 0.125);
+    --summary-text: var(--text-color);
+  }
+  
+  [data-theme="dark"] {
+    /* Colores base - Dark Theme */
+    --bg-color: #1a2026;
+    --text-color: #e5e7eb;
+    --paper-bg: #252f3f;
+    
+    /* Colores principales */
+    --primary: #5d9cec;
+    --secondary: #48cfad;
+    --error: #ff6b6b;
+    --success: var(--secondary);
+    --warning: #ffce54;
+    
+    /* Componentes */
+    --btn-bg: var(--primary);
+    --btn-color: var(--bg-color);
+    --btn-hover-bg: #4a89dc;
+    --navbar-bg: var(--paper-bg);
+    --navbar-color: var(--text-color);
+    
+    /* Inputs */
+    --input-label: #a0aec0;
+    --input-text: var(--text-color);
+    --input-border: #2d3748;
+    --input-hover-border: var(--primary);
+    --input-focus-border: var(--secondary);
+    --input-icon: var(--primary);
+    
+    /* Menús */
+    --menu-item-bg: #1e1e1e;
+    --menu-item-text: var(--text-color);
+    --menu-item-hover: #2d2d2d;
+    --menu-item-selected: #1a3a4a;
+    
+    /* Gráficos */
+    --chart-primary: var(--secondary);
+    --chart-secondary: var(--error);
+    
+    /* Textos */
+    --secondary-text: #adb5bd;
+    --balance-text: var(--success);
+    
+    /* Tooltips */
+    --tooltip-bg: #1e1e1e;
+    --tooltip-border: var(--secondary);
+    --tooltip-text: var(--text-color);
+    
+    /* Resúmenes */
+    --summary-bg: rgba(26, 58, 74, 0.125);
+    --summary-border: rgba(52, 152, 219, 0.25);
+    --summary-text: var(--text-color);
+  }
